@@ -40,7 +40,7 @@ public class init  {
         }
         return null;
     }
-    //log in
+    //find index of object in arr json
     public static int findIndex (JSONArray data, String username){
         for( int i = 0;i<data.size();i++){
             JSONObject object = (JSONObject) data.get(i);
@@ -57,9 +57,16 @@ public class init  {
         }
         return false;
     }
+    //check lua chon nhap rut
+    public static boolean checkChooseInput (int choose){
+        if(choose==1 ||choose ==2 || choose ==3 ){
+            return true;
+        }
+        return false;
+    }
     //nhap rut tien + update tien trong tk
-    public static long updateCurrency(int choose,Account account, String username, String pw){
-        long currency = 0;
+    public static Account updateAccountCurrency(int choose, Account account){
+        long currency;
         Scanner in = new Scanner(System.in);
         if ( choose ==1){
             System.out.println("Vui long nhap tien");
@@ -67,19 +74,20 @@ public class init  {
             boolean check = checkEnoughMoney(account.currentMoney,withdraw);
             if ( check){
                 currency = account.currentMoney - withdraw;
+                account.currentMoney = currency;
             }
             else{
-                return -1;
+                System.out.println("SO tien trong tai khoan khong du de rut - leu leu ");
             }
-
         }
         if (choose==2) {
             System.out.println("Vui long tien gui");
             long deposit = in.nextLong();
             currency = account.currentMoney + deposit;
+            account.currentMoney = currency;
         }
 
-        return currency;
+        return account;
     }
     public static void main(String[] args) {
         Object obj;
@@ -97,33 +105,38 @@ public class init  {
             if (account == null){
                 System.out.println("Wrong ");
             }
-            else{
-                System.out.println("Vui long chon thao tac: [1]Rut tien ; [2]Gui tien");
+            else {
+                System.out.println("Vui long chon thao tac: [1]Rut tien ; [2]Gui tien ; [3]Log out");
                 int choose = in.nextInt();
-                long currency = updateCurrency(choose,account,username,pw);
-                if ( currency ==-1){
-                    System.out.println("SO tien trong tai khoan khong du de rut - leu leu ");
-                }
-                else {
-                    account = new Account(username, pw, currency);
-                    int i = findIndex(data, account.username);
-                    JSONObject updateObjectMoney = (JSONObject) data.get(i);
-                    updateObjectMoney.put("money", account.currentMoney);
-                    data.set(i, updateObjectMoney);
-                    //Write JSON file
-                    try (FileWriter file = new FileWriter("../Bank/src/BankAccount/data.json")) {
+                while (choose != 3) {
+                    if (checkChooseInput(choose)) {
+                                account = updateAccountCurrency(choose,account);
+                                int i = findIndex(data, account.username);
+                                JSONObject updateObjectMoney = (JSONObject) data.get(i);
+                                updateObjectMoney.put("money", account.currentMoney);
+                                data.set(i, updateObjectMoney);
+                                //Write JSON file
+                                try (FileWriter file = new FileWriter("../Bank/src/BankAccount/data.json")) {
 
-                        //We can write any JSONArray or JSONObject instance to the file
-                        file.write(data.toJSONString());
-                        file.flush();
-                        file.close();
-                        System.out.println("Write succeed!");
+                                    //We can write any JSONArray or JSONObject instance to the file
+                                    file.write(data.toJSONString());
+                                    file.flush();
+                                    file.close();
+                                    System.out.println("Write succeed!");
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+
+                        System.out.println("Vui long chon thao tac: [1]Rut tien ; [2]Gui tien ; [3]Log out");
+                        choose = in.nextInt();
+
+                    } else {
+                        System.out.println("Vui long nhap lai");
+                        System.out.println("Vui long chon thao tac: [1]Rut tien ; [2]Gui tien ; [3]Log out");
+                        choose = in.nextInt();
                     }
                 }
-
             }
 
         } catch (FileNotFoundException e) {
